@@ -1,0 +1,210 @@
+
+
+	README for the Ribosome Angle Decomposition (RAD) Tool 
+
+                            Version 1.0
+
+This is a Tcl plugin for use with VMD. Using the script should be quite simple. 
+
+We have tested the tool on OSX, Linux and Windows systems. While identical numerical result are obtained, there are some OS-specific limitations, as described under "Known Issues" (below). In our testing, the most robust support was provided using VMD 1.9.3 with OSX. We also find that some pre-release versions of VMD 1.9.4 (i.e. alpha versions) can work well, though the performance can be unstable. We anticipate that RADtool will work without issues with VMD 1.9.4, when it is released. Upon release of VMD 1.9.4, we will address any possible compatibility issues RADtool.
+
+See LICENSE for GNU GENERAL PUBLIC LICENSE information.
+
+Contents:
+	1. Starting RADtool
+	2. Verifying the script configuration 
+	3. Calculating the rotation angles (basic usage)
+	4. Usage examples
+	5. Animation options
+	6. Known issues and troubleshooting
+	7. Getting help
+
+
+****************************************************************************
+
+                             STARTING RADTOOL
+
+There are three ways to use this script.  
+
+1) Manually launch the GUI
+
+	- In the "VMD Main" window, go to "Extensions->Tk Console"
+	- Once the Tk Console has opened, select "File->Load File" 
+	- Using the browser prompt, navigate to the RADtool directory, select the file "loadRADgui.tcl" and then click "Open".
+
+	If you use the GUI, then the descriptions in subsequent sections, regarding usage guidelines, are not relevant. If you plan to use RADtool frequently, check out Option 3, below. 
+
+
+2) Manually launch the console-based version of RADtool
+
+        - In the "VMD Main" window, go to "Extensions->Tk Console"
+	- "source" the script (or load via "File->Load File") from within the Tk console of VMD.  This will load the required routines into your VMD environment.  The specific command would be:
+
+	> source <RADTOOL PATH>/loadRADtool.tcl
+
+	Note: <RADTOOL PATH> is the location of the main RADtool directory. Make sure to explicitly give the full path (i.e. do not use ~/ for $HOME)
+
+
+3) If you plan to use RADtool frequently, then it can be worthwhile to "install" the script, such that RADtool may be launched at any time via the VMD menu (GUI form, option 1), or the command line (option 2). If you want to use this option, you need to add the following line to your .vmdrc (Linux/OSX) or vmd.rc (Windows) file:
+      source "<RADTOOL PATH>/installRADgui.tcl"
+
+In this case, <RADTOOL PATH> is the location of the tcl script. Technically, the quotes are not always necessary, but it is helpful if your path has spaces in it.  If you are unsure of the path, then just launch the GUI manually (option 1, above). The script will write a message to the Tk Console that will tell you exactly the format of the source line that needs to be added. Once this line is added to the .vmdrc/vmd.rc file, restart VMD.  If everything is correct, then you will be able to launch RADtool by simply going to the "VMD Main" window and selecting Extensions->Analysis->RADtool
+
+Finding the vmdrc file: 
+	On Linux/OSX, VMD searches the following locations for the vmdrc file: 
+		./.vmdrc
+		$HOME/.vmdrc
+		$VMDDIR/.vmdrc. 
+	On Windows, the following locations are checked:
+		./vmd.rc
+		$HOME/vmd.rc
+		$VMDDIR/vmd.rc.
+
+
+****************************************************************************
+
+                VERIFYING THE SCRIPT CONFIGURATION (HIGHLY ENCOURAGED)
+
+While we regularly test the script on various Linux, OSX and Windows platforms, it is very important that you verify the routines are performing as expected on your machine. After you have configured your script (using any of the above options), simply issue the command:
+
+	> RADtool -test
+
+If you plan to analyze trajectories, then you should instead issue the command:
+
+	> RADtool -testall
+
+The test typically takes 5-15 minutes to complete. Note: While testing is running, it is normal for VMD to become temporarily unresponsive.   
+
+If the testing is successful, then you will recieve the message:
+
+	"RADTOOL-TEST PASSED ALL TESTS"
+
+If you do not receive this message, let us know.
+
+
+****************************************************************************
+
+              CALCULATING THE ROTATION ANGLES (BASIC USAGE)
+
+
+The easiest way to use RADtool, is to load the GUI (see above) and follow the prompts.
+
+
+If you want to use the command-line based version, look below.
+
+To use this script, open VMD and then open the Tk console.  
+From within the Tk console, call:
+	
+	> RADtool [-l <PDB containing LSU rRNA>] [-lc <CHAIN ID of LSU rRNA>] [-s <PDB containing SSU rRNA>] [-sc <Chain ID of SSU rRNA>] [-traj <list of files>] [-h|-help]
+ 
+	For a complete list of options, use the -h flag. See below for common example invocations.
+
+
+****************************************************************************
+
+		           USAGE EXAMPLES
+
+Below we give various examples for how to use the script.  For a complete list of options, including various I/O and alignment options, use the command 
+
+	> RADtool -help
+
+
+
+GENERAL NOTE: For all cases below, if you are NOT looking at an E. coli ribosome, then you should add the -stamp flag. Without this flag, non-E.coli ribosome analysis will not be meaningful.
+
+
+
+Case 1 (Simplest usage): You want to visualize a ribosome, and all you have is the 4-character RSCB accession code.  In this case, you can tell RADtool to download the set of PDB files (or cif files) and analyze them. The bundle (or single PDB file, or cif) is downloaded, and RADtool automatically identifies all LSU-SSU pairs.  The systems are visualized using a common viewpoint and all angles are reported. 
+
+	>RADtool -download <4-character RCSB ID>
+
+
+Case 2: You have a set of files (PDB or cif format), but you don't know (or are perhaps too rushed) to determine which chains are the LSU and SSU.  In that case, you can use the bundle option.  This will read the structure files, figure out which chains are large RNA molecules and then try to guess which chains are the SSU and LSU. It will then perform angle decomposition on each identified pair. -bundle is compatible with most other options. The only difference is that (if more than one LSU-SSU pair is found) the output files will have _<N> appended to their names, where <N> is an integer to indicate which LSU-SSU pair is being described. 
+	
+	>RADtool -bundle <list of structure files>
+
+
+Case 3: You have two files (PDB or cif format), one with the LSU and one with the SSU (or both in one file), and you know the chain IDs of the rRNA molecules.
+
+	> RADtool [-l <file containing LSU rRNA>] [-lc <CHAIN ID of LSU rRNA>] [-s <file containing SSU rRNA>] [-sc <Chain ID of SSU rRNA>] -cores_out <file name>
+
+	Note: the -cores_out option allows you to write out the core atoms that were identified after stamp and pruning.  This can be useful for future uses of the same core group
+
+
+Case 4: You have a trajectory (or multiple structures with identical chemical composition): For this, you must provide the entire ribosome in a single pdb. 
+
+	> RADtool [-lc <CHAIN ID of LSU rRNA>] [-sc <Chain ID of SSU rRNA>] [-traj <PDB/cif file with chain IDs> <any additional conformations/trajectories>]
+
+
+Case 5: Any of the above cases, but you only have a SSU, and no LSU. For this, then issue the -SSUonly flag.  This tells the script to perform all of the same analysis, but only monitor head rotations, since the body rotation can only be defined relative to the LSU. When used with -bundle, RADtool will assume that the largest RNA molecules are rRNA of the SSU.
+
+
+Case 6: You are not using E. coli numbering, but you already know the corresponding residue alignments to E. Coli: In this case, you can provide a file giving the alignment by adding 
+
+	-align_in <alignment file>
+
+This is compatible with the -traj, -noprune, -notall and -cores_in options.
+
+
+Case 7: You have an LSU and you want to align it to the reference E. coli model. Simply use the -LSUonly option, which is compatible with -bundle.
+
+
+****************************************************************************
+
+			ANIMATION OPTIONS
+
+When performing angle calculations, you can automatically have an animation
+shown between the classical E coli orientation (4v9d) and the model of 
+interest. Just add the  flag:
+
+-animate 
+
+This will show body rotation, body tilt, body translation, then head. If you are only looking at the SSU, then only head motions will be shown.
+
+
+If you have two models that you want to compare, then run RADtool twice. Every time RADtool is run, there will be note about the ribosome number (for use with -animate2). To show the rearrangement required to go between any two ribosomes that were analyzed in the current session, use the -animate2 option:
+
+>RADtool -animate2 [10] <starting ID> <end ID>
+
+The first arg is the number of frames to show during each stage of the animation (e.g. body rotation, head rotation, etc). The second and third args are the IDs of the ribosomes. By default, the visualization will move the starting ribosome model to the corresponding orientation of the end ribosome.
+
+This will show the differences between the two models, with the following sequence of changes:
+body rotation
+body tilt and tilt direction
+body translation
+head rotation
+head tilt and tilt direction
+head translation
+
+This flag will also redraw the input models, in order to simplify the display. 
+
+
+****************************************************************************
+
+			KNOWN ISSUES AND TROUBLESHOOTING
+
+- Dropbox (or other cloud-based services): When running RAD, various meta files are transiently written, read and (sometimes) deleted. If you store the RADtool script in a cloud-based drive, then you may experience inexplicable failures to complete, or other access errors.  This can also happen if you are using RADtool from a cloud drive (i.e. you are saving data to a cloud drive). If you simply move the whole RADtool directory to a local (non-cloud) drive, and you work/save from/to a local drive, these issues should be mitigated. 
+
+- Windows: When using the -stamp option on a Windows machine, there may be a residual metadata directory that is not removed. This has no effect on the results, and it can be safely removed by the user. 
+
+- Linux: For some linux systems, when analyzing a ribosome that has a very long rRNA, RADtool may exit immediately after stamp alignment, without completing. We have found that the same structures work on Windows and OSX. 
+
+- OSX: When using VMD 1.9.4 (pre-release alpha versions), there can be occassional issues with chain IDs when using PDBx/mmCIF files. We anticipate this issue will be resolved when VMD 1.9.4 is released.
+
+- Rare: Sometimes, PDB structures will have non-rRNA residues that are given the same chainID as the rRNA chains. We have implemented a range of internal checks that will exclude non-rRNA from consideration. However, novel ligands may go unchecked. In those cases, the script will typically exit with an error regarding non-contiguous residue numbers. If that happens, just assign a unique chain ID to the rRNA.
+
+- Occasional failed tests when running RADtool -testall. We have tested RADtool using VMD 1.9.3 and 1.9.4alpha on the following platforms.
+	OSX Monterey with VMD 1.9.4a55 - All tests passed without error
+		Note that 1.9.4a55 is a pre-release version of VMD.  If you encounter issues using RADtool with this version, it can be helpful if you let us know. It is always possible that there wll be bugs in pre-release versions of VMD.
+	CentOS 6.10 with VMD 1.9.3 - All tests passed without error
+	VMD 1.9.4a48 - We have found RADtool is very unstable with this pre-release version of VMD.  It is an old pre-release version of VMD, so it is recommended to use newer versions.
+
+****************************************************************************
+
+                         GETTING HELP
+
+If you encounter any issues, please contact the Whitford Group, at the 
+Center for Theoretical Biological Physics, Northeastern University
+email: p.whitford@northeastern.edu
+http://radtool.org
+

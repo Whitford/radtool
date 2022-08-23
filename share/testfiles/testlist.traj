@@ -1,0 +1,14 @@
+full
+3j77.renum.pdb 3j77.1.xtc 3j77.2.xtc 3j77.3.xtc 
+P A
+3j77.3.traj.output
+skip
+2
+3j77.renum.pdb 3j77.1.xtc 3j77.2.xtc  
+P A
+3j77.2.traj.output.skip
+segment
+3
+3j77.renum.pdb 3j77.1.xtc 3j77.2.xtc 3j77.3.xtc
+P A
+3j77.3.traj.output
