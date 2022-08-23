@@ -6,7 +6,7 @@
 
 This is a Tcl plugin for use with VMD. Using the script should be quite simple. 
 
-We have tested the tool on OSX, Linux and Windows systems. While identical numerical result are obtained, there are some OS-specific limitations, as described under "Known Issues" (below). In our testing, the most robust support was provided using VMD 1.9.3 with OSX. We also find that some pre-release versions of VMD 1.9.4 (i.e. alpha versions) can work well, though the performance can be unstable. We anticipate that RADtool will work without issues with VMD 1.9.4, when it is released. Upon release of VMD 1.9.4, we will address any possible compatibility issues RADtool.
+We have tested the tool on OSX, Linux and Windows systems. While identical numerical result are obtained, there are some OS-specific limitations, as described under "Known Issues" (below). In our testing, the most robust support was provided using VMD 1.9.3 with OSX. We also find that some pre-release versions of VMD 1.9.4 (i.e. alpha versions) can work well, though the performance can be unstable. We anticipate that RADtool will work without issues with VMD 1.9.4, when it is released. Upon release of VMD 1.9.4, we will address any possible compatibility issues.
 
 See LICENSE for GNU GENERAL PUBLIC LICENSE information.
 
