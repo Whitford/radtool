@@ -802,7 +802,7 @@ $RADREF
        Mattingly J, Gonzalez RL Jr, Oliveira RJ, Dunham CM,  Whitford PC.
        Ratchet, swivel, tilt and roll: A complete description of subunit
        rotation in the ribosome.
-       bioRxiv. DOI: 10.1101/2022.06.22.497108"
+       Nucleic Acids Research. DOI:10.1093/nar/gkac1211"
   set NGUYENREF "       Nguyen K, Whitford PC. 
        Steric interactions lead to collective head tilting 
        motion in the ribosome during mRNA-tRNA translocation.  
