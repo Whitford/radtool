@@ -478,14 +478,16 @@ namespace eval RTBUNDLE {
   if { $asubunit == 1 } {
    set flag1 "-s"
    set flag2 "-sc"
+   set subunit "SSU"
   }
   if { $asubunit == 2 } {
    set flag1 "-l"
    set flag2 "-lc"
+   set subunit "LSU"
   }
   set i 0
   foreach {SSU} $candidates {
-   puts "\nWill now call $exec to analyze candidate SSU # $i"
+   puts "\nWill now call $exec to analyze candidate $subunit # $i"
    puts -nonewline "    Output files:"
    set IO {}
    foreach {name} [array names outfiles] {
