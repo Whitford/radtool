@@ -2202,13 +2202,19 @@ $RADREF
     } errorMessage] != 0} {
      error "Unable to load $options(SMALLPDB). Something about the file is incompatible with VMD. Perhaps consult VMD documentation.\n\nError message:\n$errorMessage"
     }
-    set tentativehead1 [atomselect $ID_SMALL "not backbone and not name P and chain \"$CHAIN_ID_SrRNA\" and resid $closestB to [expr $closestB+200]"]
-    set tentativehead2 [atomselect $ID_SMALL "not backbone and not name P and chain \"$CHAIN_ID_SrRNA\" and resid [expr $closestB+200] to [expr $closestB+500]"]
+    # convert to residue numbering, in case there are issues with the resids (e.g. accidental jumps in sequence)
+    set first [atomselect $ID_SMALL "name P and chain \"$CHAIN_ID_SrRNA\" and resid $closestB"]
+    set firstresidue [$first get residue]
+    $first delete
+    
+    puts "beginning $closestB"
+    set tentativehead1 [atomselect $ID_SMALL "not backbone and not name P and chain \"$CHAIN_ID_SrRNA\" and residue $firstresidue to [expr $firstresidue+200]"]
+    set tentativehead2 [atomselect $ID_SMALL "not backbone and not name P and chain \"$CHAIN_ID_SrRNA\" and residue [expr $firstresidue+200] to [expr $firstresidue+500]"]
     set dthresh 3
     if { [$tentativehead1 num] == 0 || [$tentativehead2 num] == 0 } {
      # this usually only happens if we have a P-only model.  so, we will just look at P atoms, instead, and use a longer threshhold
-     set tentativehead1 [atomselect $ID_SMALL "name P and chain \"$CHAIN_ID_SrRNA\" and resid $closestB to [expr $closestB+200]"]
-     set tentativehead2 [atomselect $ID_SMALL "name P and chain \"$CHAIN_ID_SrRNA\" and resid [expr $closestB+200] to [expr $closestB+500]"]
+     set tentativehead1 [atomselect $ID_SMALL "name P and chain \"$CHAIN_ID_SrRNA\" and residue $firstresidue to [expr $firstresidue+200]"]
+     set tentativehead2 [atomselect $ID_SMALL "name P and chain \"$CHAIN_ID_SrRNA\" and residue [expr $firstresidue+200] to [expr $firstresidue+500]"]
      set dthresh 24
     }
     set conts [ measure contacts $dthresh $tentativehead1 $tentativehead2]
