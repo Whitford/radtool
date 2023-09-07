@@ -2207,7 +2207,6 @@ $RADREF
     set firstresidue [$first get residue]
     $first delete
     
-    puts "beginning $closestB"
     set tentativehead1 [atomselect $ID_SMALL "not backbone and not name P and chain \"$CHAIN_ID_SrRNA\" and residue $firstresidue to [expr $firstresidue+200]"]
     set tentativehead2 [atomselect $ID_SMALL "not backbone and not name P and chain \"$CHAIN_ID_SrRNA\" and residue [expr $firstresidue+200] to [expr $firstresidue+500]"]
     set dthresh 3
@@ -3804,7 +3803,7 @@ p.whitford@northeastern.edu
  }
 }
 
-set ::RADTOOL::radversion "1.1beta"
+set ::RADTOOL::radversion "1.0.2"
 set ::RADTOOL::radenv(ROTATIONPATH) [ file dirname [ file normalize [ info script ] ] ]
 ::RADTOOL::setrefslabels
 source $::RADTOOL::radenv(ROTATIONPATH)/single_align.tcl
