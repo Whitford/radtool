@@ -3803,7 +3803,7 @@ p.whitford@northeastern.edu
  }
 }
 
-set ::RADTOOL::radversion "1.0.2"
+set ::RADTOOL::radversion "1.1beta"
 set ::RADTOOL::radenv(ROTATIONPATH) [ file dirname [ file normalize [ info script ] ] ]
 ::RADTOOL::setrefslabels
 source $::RADTOOL::radenv(ROTATIONPATH)/single_align.tcl
