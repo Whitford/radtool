@@ -2219,7 +2219,7 @@ $RADREF
     set conts [ measure contacts $dthresh $tentativehead1 $tentativehead2]
     set nconts [llength [lindex $conts 0]]
     if { $nconts == 0 } {
-     error "sequence-based alignment could not make a good guess about where the SSU head is located. This error is common when trying to analyze atypical ribosomes (e.g. those that are composed of many rRNA molecules per subunit). If this is a structure composed of large rRNA molecules in the LSU and SSU (e.g. 23S and 16S), then perhaps try using the -h_f and -h_l options." 
+     error "sequence-based alignment could not make a good guess about where the SSU head is located. This error is common when trying to analyze atypical ribosomes (e.g. those that are composed of many rRNA molecules per subunit). If this is a structure composed of large rRNA molecules in the LSU and SSU (e.g. 23S and 16S), then perhaps try using the -h_f and -h_l options. It can also happen if there are issues in the head residue numbering. The flag -findhead2 (Alt. find head method button) can be helpful." 
     }
     $tentativehead1 delete
     $tentativehead2 delete
