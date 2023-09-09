@@ -200,7 +200,7 @@ namespace eval RTBUNDLE {
    set args [join $args]
   }
   set asubunit 0
-  set supopts [ list "bundle" "download" "e" "o" "oe" "ot" "align_out" "cores_out" "overwrite" "dump" "stamp" "animate" "notall" "noprune" "findhead" "pruneby" "ssuonly" "lsuonly" "precision"]
+  set supopts [ list "bundle" "download" "e" "o" "oe" "ot" "align_out" "cores_out" "overwrite" "dump" "stamp" "animate" "notall" "noprune" "findhead" "pruneby" "ssuonly" "lsuonly" "precision" "findhead2"]
   foreach {opt} $supopts {
    set options(-$opt) 0
   }

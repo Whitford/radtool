@@ -477,6 +477,7 @@ $RADREF
   set flags(h_l) "HEADLAST"
   set flags(noprune) "NOPRUNE"
   set flags(nofindhead) "NOFINDHEAD"
+  set flags(findhead2) "FINDHEAD2"
   set flags(pruneby) "PRUNEBY"
   set flags(o) "OUTPUT"
   set flags(e) "ERROR"
@@ -631,7 +632,7 @@ $RADREF
   }
  
   # check for incompatible options
-  foreach {o1 o2} {SAVENAME BUNDLE SAVENAME DOWNLOAD SAVENAME LOADTRAJ NOPRUNE PRUNEBY LOADTRAJ ONLYSSU LOADTRAJ ONLYLSU BUNDLE CHAIN_LrRNA BUNDLE CHAIN_SrRNA BUNDLE LARGEPDB BUNDLE SMALLPDB DOWNLOAD LARGEPDB DOWNLOAD SMALLPDB DOWNLOAD CHAIN_LrRNA DOWNLOAD CHAIN_SrRNA BUNDLE DOWNLOAD ONLYSSU LARGEPDB ONLYSSU CHAIN_LrRNA ONLYLSU SMALLPDB ONLYLSU CHAIN_SrRNA INCLUDEALL CORESIN LOADTRAJ LARGEPDB LOADTRAJ SMALLPDB READALIGNMENT STAMP LOADTRAJ STAMP LOADTRAJ ONLYSSU ONLYLSU} {
+  foreach {o1 o2} {SAVENAME BUNDLE SAVENAME DOWNLOAD SAVENAME LOADTRAJ NOPRUNE PRUNEBY LOADTRAJ ONLYSSU LOADTRAJ ONLYLSU BUNDLE CHAIN_LrRNA BUNDLE CHAIN_SrRNA BUNDLE LARGEPDB BUNDLE SMALLPDB DOWNLOAD LARGEPDB DOWNLOAD SMALLPDB DOWNLOAD CHAIN_LrRNA DOWNLOAD CHAIN_SrRNA BUNDLE DOWNLOAD ONLYSSU LARGEPDB ONLYSSU CHAIN_LrRNA ONLYLSU SMALLPDB ONLYLSU CHAIN_SrRNA INCLUDEALL CORESIN LOADTRAJ LARGEPDB LOADTRAJ SMALLPDB READALIGNMENT STAMP LOADTRAJ STAMP LOADTRAJ ONLYSSU LOADTRAJ ONLYLSU ONLYLSU FINDHEAD2} {
    if {[info exists called($o1)] && [info exists called($o2)] } {
     # add specific messages before throwing the error.
     set moreinfo ""
@@ -2196,16 +2197,25 @@ $RADREF
     set first [atomselect $ID_SMALL "name P and chain \"$CHAIN_ID_SrRNA\" and resid $closestB"]
     set firstresidue [$first get residue]
     $first delete
-    
-    set tentativehead1 [atomselect $ID_SMALL "not backbone and not name P and chain \"$CHAIN_ID_SrRNA\" and residue $firstresidue to [expr $firstresidue+200]"]
-    set tentativehead2 [atomselect $ID_SMALL "not backbone and not name P and chain \"$CHAIN_ID_SrRNA\" and residue [expr $firstresidue+200] to [expr $firstresidue+500]"]
+   
+    if {[info exists options(FINDHEAD2)]} { 
+     set resrange1 "residue $firstresidue to [expr $firstresidue+200]"
+     set resrange2 "residue [expr $firstresidue+200] to [expr $firstresidue+500]"
+    } else {
+     set resrange1 "resid $closestB to [expr $closestB+200]"
+     set resrange2 "resid [expr $closestB+200] to [expr $closestB+500]"
+    }
+
+    set tentativehead1 [atomselect $ID_SMALL "not backbone and not name P and chain \"$CHAIN_ID_SrRNA\" and $resrange1"]
+    set tentativehead2 [atomselect $ID_SMALL "not backbone and not name P and chain \"$CHAIN_ID_SrRNA\" and $resrange2"]
     set dthresh 3
     if { [$tentativehead1 num] == 0 || [$tentativehead2 num] == 0 } {
      # this usually only happens if we have a P-only model.  so, we will just look at P atoms, instead, and use a longer threshhold
-     set tentativehead1 [atomselect $ID_SMALL "name P and chain \"$CHAIN_ID_SrRNA\" and residue $firstresidue to [expr $firstresidue+200]"]
-     set tentativehead2 [atomselect $ID_SMALL "name P and chain \"$CHAIN_ID_SrRNA\" and residue [expr $firstresidue+200] to [expr $firstresidue+500]"]
+     set tentativehead1 [atomselect $ID_SMALL "name P and chain \"$CHAIN_ID_SrRNA\" and $resrange"]
+     set tentativehead2 [atomselect $ID_SMALL "name P and chain \"$CHAIN_ID_SrRNA\" and $resrange"]
      set dthresh 24
     }
+
     set conts [ measure contacts $dthresh $tentativehead1 $tentativehead2]
     set nconts [llength [lindex $conts 0]]
     if { $nconts == 0 } {
@@ -2669,6 +2679,9 @@ When using the command-line interface, the following flags are supported:
                              This implies -notall
        -SSUonly          : only calculate angles for SSU head, relative to SSU body
        -LSUonly          : only align the LSU to the reference and quit
+       -findhead2        : use alternate method for guessing the head location
+                             This can be useful if the head can not be 
+                             automatically identified
 
    Additional STAMP options:
        -h_f              : first residue of small subunit head (ResID in the input model)

@@ -36,6 +36,7 @@ namespace eval RADGUI:: {
  variable RCSBname 
  variable LSUSSU 
  variable doSTAMP 
+ variable doFINDHEAD2
  variable doDUMP 
  variable pruneON 
  variable pruneby 
@@ -60,6 +61,7 @@ namespace eval RADGUI:: {
   variable RCSBname 
   variable LSUSSU 
   variable doSTAMP
+  variable doFINDHEAD2
   variable doDUMP
   variable pruneON
   variable pruneby
@@ -78,6 +80,7 @@ namespace eval RADGUI:: {
   set RCSBname {}
   set LSUSSU {all}
   set doSTAMP {1}
+  set doFINDHEAD2 {0}
   set doDUMP {0}
   set pruneON {1}
   set pruneby {2}
@@ -194,6 +197,9 @@ namespace eval RADGUI:: {
   label $w.all2.analysis.pruneLabel -text {Prune cores:}
   checkbutton $w.all2.analysis.prune -variable RADGUI::pruneON -onvalue 1 -offvalue 0
 
+  label $w.all2.analysis.fhLabel -text {Alt. find head method:}
+  checkbutton $w.all2.analysis.fh -variable RADGUI::doFINDHEAD2 -onvalue 1 -offvalue 0
+
   label $w.all2.analysis.prunebyLabel -text {Prune threshold (Angstroms):} -anchor w
   entry $w.all2.analysis.pruneby -width 4 -textvariable RADGUI::pruneby  
  
@@ -306,13 +312,15 @@ For support, contact us and/or consult the RADtool webpage.}
   grid $w.all2.analysis.g1.a.b.lsuonly   -column 1 -row 3 -sticky w
   grid $w.all2.analysis.stampLabel       -column 1 -row 3 -sticky nw -pady 3
   grid $w.all2.analysis.stamp            -column 2 -row 3 -sticky nw -padx 1 -pady 3 -columnspan 2
-  grid $w.all2.analysis.pruneLabel       -column 1 -row 4 -sticky nw -pady 3
-  grid $w.all2.analysis.prune            -column 2 -row 4 -sticky nw -padx 1 -pady 3 -columnspan 2
-  grid $w.all2.analysis.prunebyLabel     -column 1 -row 5 -sticky nw -pady 3
-  grid $w.all2.analysis.pruneby          -column 2 -row 5 -sticky nw -padx 1 -pady 3 -columnspan 2
+  grid $w.all2.analysis.fhLabel          -column 1 -row 4 -sticky nw -pady 3
+  grid $w.all2.analysis.fh               -column 2 -row 4 -sticky nw -padx 1 -pady 3 -columnspan 2
+  grid $w.all2.analysis.pruneLabel       -column 1 -row 5 -sticky nw -pady 3
+  grid $w.all2.analysis.prune            -column 2 -row 5 -sticky nw -padx 1 -pady 3 -columnspan 2
+  grid $w.all2.analysis.prunebyLabel     -column 1 -row 6 -sticky nw -pady 3
+  grid $w.all2.analysis.pruneby          -column 2 -row 6 -sticky nw -padx 1 -pady 3 -columnspan 2
 
-  grid $w.all2.analysis.choice2          -column 1 -row 6 -sticky nw -pady 3
-  grid $w.all2.analysis.g2               -column 2 -row 6 -sticky nw -padx 5 -pady 3 -columnspan 2
+  grid $w.all2.analysis.choice2          -column 1 -row 7 -sticky nw -pady 3
+  grid $w.all2.analysis.g2               -column 2 -row 7 -sticky nw -padx 5 -pady 3 -columnspan 2
   pack $w.all2.analysis.g2.a             -fill both -expand true -side left
   pack $w.all2.analysis.g2.a.b           -fill both -expand true -side left
   grid $w.all2.analysis.g2.a.b.off     -column 1 -row 1 -sticky w
@@ -390,6 +398,7 @@ IF YOU RUN \"RADtool -test\" IN THE TkConsole, AND ALL TESTS ARE PASSED, THEN MO
   variable LSUonly
   variable SSUonly
   variable doSTAMP
+  variable doFINDHEAD2
   variable doDUMP
   variable pruneON
   variable pruneby
@@ -532,6 +541,10 @@ IF YOU RUN \"RADtool -test\" IN THE TkConsole, AND ALL TESTS ARE PASSED, THEN MO
   if { $doSTAMP eq 1 } {
    lappend args "-stamp"
    lappend radmess "    STAMP alignment will be performed.\n"
+  }
+  if { $doFINDHEAD2 eq 1 } {
+   lappend args "-findhead2"
+   lappend radmess "    Alternate method for finding head will be used.\n"
   }
   if { $doDUMP eq 1 } {
    lappend args "-dump"
