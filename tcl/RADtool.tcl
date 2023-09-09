@@ -192,7 +192,7 @@ namespace eval RADTOOL {
  
   # this is also done in the sequence alignment steps. But, we'll repeat it here, just in case we are not aligning.
   if {[catch {
-   makecontiguous options $ID_LARGE $CHAIN_ID_LrRNA $ID_SMALL $CHAIN_ID_SrRNA 
+   checkcontiguous options $ID_LARGE $CHAIN_ID_LrRNA $ID_SMALL $CHAIN_ID_SrRNA 
   } errorMessage] != 0} {
    puts stderr "Error: $errorMessage\n\nExiting without completing.\n"
    if {[info exists radenv(GUION)]} {
@@ -928,53 +928,43 @@ $RADREF
   return [array get options]
  }
  
- proc makecontiguous {optin ID_LARGE CHAIN_ID_LrRNA ID_SMALL CHAIN_ID_SrRNA} {
+ proc checkcontiguous {optin ID_LARGE CHAIN_ID_LrRNA ID_SMALL CHAIN_ID_SrRNA} {
  
-  variable radenv
   upvar $optin options
   if { ! [info exists options(ONLYSSU)] } {
    # first see if any non rRNA atoms have the same chain ID.
    # if they do, then set their chains to "null"
-   reassignchains options $ID_LARGE $CHAIN_ID_LrRNA "LSU" 1 
- 
-   set LSEL [atomselect $ID_LARGE "chain \"$CHAIN_ID_LrRNA\" and $radenv(NOTSTUFF)"]
-   set first [lindex [$LSEL get serial] 0]
-   set last [lindex [$LSEL get serial] [expr [$LSEL num]-1]]
-   set LNUM [$LSEL num]
-   # since we are calling reassignchains, this should never be true
-   # but, it is possible that someone finds a way to break earlier routines
-   # so, we'll leave this check in place
-   if {[$LSEL num] != [expr $last-$first+1] && [$LSEL num] > 0} {
-    set lastname [lindex [$LSEL get name] [expr [$LSEL num]-1]]
-    set firstname [lindex [$LSEL get name] 0]
-    set lastresname [lindex [$LSEL get resname] [expr [$LSEL num]-1]]
-    set firstresname [lindex [$LSEL get resname] 0]
-    error "Internal Error: Please report to developers: Non-contiguous set of atoms found when selecting chain \"$CHAIN_ID_LrRNA\" in the structure file [molinfo $ID_LARGE get filename]. First atom is $first ($firstresname $firstname) and last is $last ($lastresname $lastname).  But, there are $LNUM atoms found with this chain ID (excluding water, common ion and ligand names). 
- 
- This usually occurs when a structre file uses the same chain ID for a non-rRNA residue. Simply giving non-rRNA residues a different chain ID will typically resolve the issue."
-   }
-   $LSEL delete
+   reassignchains options $ID_LARGE $CHAIN_ID_LrRNA "LSU" 1
+   # for the largest block, check if atoms and resids are continuous 
+   checkcontiguousatomsress $ID_LARGE $CHAIN_ID_LrRNA 
   }
  
   if { ! [info exists options(ONLYLSU)] } {
    reassignchains options $ID_SMALL $CHAIN_ID_SrRNA "SSU" 1 
-   set LSEL [atomselect $ID_SMALL "chain \"$CHAIN_ID_SrRNA\" and $radenv(NOTSTUFF)"]
-   set first [lindex [$LSEL get serial] 0]
-   set last [lindex [$LSEL get serial] [expr [$LSEL num]-1]]
-   set LNUM [$LSEL num]
-   if {[$LSEL num] != [expr $last-$first+1] && [$LSEL num] > 0} {
-    set lastname [lindex [$LSEL get name] [expr [$LSEL num]-1]]
-    set firstname [lindex [$LSEL get name] 0]
-    set lastresname [lindex [$LSEL get resname] [expr [$LSEL num]-1]]
-    set firstresname [lindex [$LSEL get resname] 0]
- 
-    error "Non-contiguous set of atoms found when selecting chain \"$CHAIN_ID_SrRNA\" in the structure file [molinfo $ID_SMALL get filename]. First atom is $first ($firstresname $firstname) and last is $last ($lastresname $lastname).  But, there are $LNUM atoms found with this chain ID (excluding water, common ion and ligand names). 
- 
- This usually occurs when a structure file uses the same chain ID for a non-rRNA residue. Simply giving non-rRNA residues a different chain ID will typically resolve the issue."
-   }
-   $LSEL delete
+   checkcontiguousatomsress $ID_SMALL $CHAIN_ID_SrRNA 
   }
  }
+
+ proc checkcontiguousatomsress {MOL_ID CHAIN_ID} {
+  variable radenv
+  set SEL [atomselect $MOL_ID "chain \"$CHAIN_ID\" and $radenv(NOTSTUFF)"]
+  set first [lindex [$SEL get serial] 0]
+  set last [lindex [$SEL get serial] [expr [$SEL num]-1]]
+  set NUM [$SEL num]
+  # since we are calling reassignchains, this should never be true
+  # but, it is possible that someone finds a way to break earlier routines
+  # so, we'll leave this check in place
+  if {[$SEL num] != [expr $last-$first+1] && [$SEL num] > 0} {
+   set lastname [lindex [$SEL get name] [expr [$SEL num]-1]]
+   set firstname [lindex [$SEL get name] 0]
+   set lastresname [lindex [$SEL get resname] [expr [$SEL num]-1]]
+   set firstresname [lindex [$SEL get resname] 0]
+   error "Non-contiguous set of atoms found when selecting chain \"$CHAIN_ID\" in the structure file [molinfo $MOL_ID get filename]. First atom is $first ($firstresname $firstname) and last is $last ($lastresname $lastname).  But, there are $NUM atoms found with this chain ID (excluding water, common ion and ligand names). 
+ 
+ This usually occurs when a structre file uses the same chain ID for non-rRNA residues. Simply giving non-rRNA residues a different chain ID will typically resolve the issue. If that does not work, contact the RADtool developers."
+  }
+  $SEL delete
+ } 
  
  proc loadrefdata {optin} {
   variable labels
