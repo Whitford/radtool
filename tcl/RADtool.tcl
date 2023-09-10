@@ -933,20 +933,23 @@ $RADREF
  
   upvar $optin options
   if { ! [info exists options(ONLYSSU)] } {
+   puts $options(OUTPUT) "Checking LSU for continuous atom/residue numbering."
    # first see if any non rRNA atoms have the same chain ID.
    # if they do, then set their chains to "null"
-   findlargestblock options $ID_LARGE $CHAIN_ID_LrRNA "LSU" 1
+   findlargestblock options $ID_LARGE $CHAIN_ID_LrRNA 1
    # for the largest block, check if atoms and resids are continuous 
-   checkcontiguousatomsress $ID_LARGE $CHAIN_ID_LrRNA 
+   checkcontiguousatomsress options $ID_LARGE $CHAIN_ID_LrRNA 
   }
  
   if { ! [info exists options(ONLYLSU)] } {
-   findlargestblock options $ID_SMALL $CHAIN_ID_SrRNA "SSU" 1 
-   checkcontiguousatomsress $ID_SMALL $CHAIN_ID_SrRNA 
+   puts $options(OUTPUT) "Checking SSU for continuous atom/residue numbering."
+   findlargestblock options $ID_SMALL $CHAIN_ID_SrRNA 1 
+   checkcontiguousatomsress options $ID_SMALL $CHAIN_ID_SrRNA 
   }
  }
 
- proc checkcontiguousatomsress {MOL_ID CHAIN_ID} {
+ proc checkcontiguousatomsress {optin MOL_ID CHAIN_ID} {
+  upvar $optin options
   variable radenv
   set SEL [atomselect $MOL_ID "chain \"$CHAIN_ID\" and $radenv(NOTSTUFF)"]
   set first [lindex [$SEL get serial] 0]
@@ -962,11 +965,32 @@ $RADREF
    set firstname [lindex [$SEL get name] 0]
    set lastresname [lindex [$SEL get resname] [expr [$SEL num]-1]]
    set firstresname [lindex [$SEL get resname] 0]
-   error "Non-contiguous set of atoms found when selecting chain \"$CHAIN_ID\" in the structure file [molinfo $MOL_ID get filename]. First atom is $first ($firstresname $firstname) and last is $last ($lastresname $lastname).  But, there are $NUM atoms found with this chain ID (excluding water, common ion and ligand names). 
- 
- This usually occurs when a structre file uses the same chain ID for non-rRNA residues. Simply giving non-rRNA residues a different chain ID will typically resolve the issue. If that does not work, contact the RADtool developers."
+   error "Internal error: Contact developers. Non-contiguous set of atoms found.  This should not happen at this point in the calculation."
   }
   $SEL delete
+  # check that the residue number are ascending and have no jumps.
+  set seqmessages {}
+  set SEL [atomselect $MOL_ID "chain \"$CHAIN_ID\" and name P and $radenv(NOTSTUFF)"]
+  set residlist [$SEL get resid]
+  set resnamelist [$SEL get resname]
+  set last [lindex $residlist 0]
+  for {set i 1} { $i < [llength $residlist] } {incr i} {
+   set cur [lindex $residlist $i]
+   set diff [expr $cur-$last]
+   if { $diff > 1 || $diff < 0} {
+    set curname [lindex $resnamelist $i]
+    set lastname [lindex $resnamelist [expr $i-1]]
+    lappend seqmessages "$lastname$last-$curname$cur"
+   }
+   set last $cur
+  }
+  if { [llength $seqmessages] > 0 } {
+   puts $options(OUTPUT) "\nThe following instances of non-sequential residue numbering were found:"
+   foreach v $seqmessages {
+    puts $options(OUTPUT) "    $v"
+   }
+    puts $options(OUTPUT) ""
+  } 
  } 
  
  proc loadrefdata {optin} {
@@ -2213,8 +2237,8 @@ $RADREF
     set dthresh 3
     if { [$tentativehead1 num] == 0 || [$tentativehead2 num] == 0 } {
      # this usually only happens if we have a P-only model.  so, we will just look at P atoms, instead, and use a longer threshhold
-     set tentativehead1 [atomselect $ID_SMALL "name P and chain \"$CHAIN_ID_SrRNA\" and $resrange"]
-     set tentativehead2 [atomselect $ID_SMALL "name P and chain \"$CHAIN_ID_SrRNA\" and $resrange"]
+     set tentativehead1 [atomselect $ID_SMALL "name P and chain \"$CHAIN_ID_SrRNA\" and $resrange1"]
+     set tentativehead2 [atomselect $ID_SMALL "name P and chain \"$CHAIN_ID_SrRNA\" and $resrange2"]
      set dthresh 24
     }
 
@@ -3423,7 +3447,7 @@ $transMatricesdump
   return [list $PHI $n_hat]
  }
  
- proc findlargestblock {optin MOLID CHAIN_ID SUBUNIT WRITE} {
+ proc findlargestblock {optin MOLID CHAIN_ID WRITE} {
   variable radenv
   upvar $optin options
   set LSEL [atomselect $MOLID "chain \"$CHAIN_ID\" and $radenv(NOTSTUFF)"]
@@ -3443,7 +3467,7 @@ $transMatricesdump
   # breaks has the first and last atoms, always.  If there are any others, then there must be something non-consecutive
   if {[llength $breaks] > 2} {
    if {$WRITE} {
-    puts $options(OUTPUT) "\nNote: Chain $CHAIN_ID was given for the $SUBUNIT.  However, the structure file contains atoms with chain $CHAIN_ID that are not consecutive. This typically is due to non-rRNA atoms (often ligands) being given a redundant chain ID. For subsequent analysis, only the largest contiguous block of atoms with ID $CHAIN_ID will be considered.\n" 
+    puts $options(OUTPUT) "\nNote: Chain ID $CHAIN_ID includes atoms that are no sequential in the file. This typically is due to non-rRNA atoms (often ligands) being given a redundant chain ID. For subsequent analysis, only the largest contiguous block of atoms with ID $CHAIN_ID will be considered.\n" 
    }
   }
   # if not contiguous, find largest contiguous block, rename IDs for all others and give a message
@@ -3463,7 +3487,7 @@ $transMatricesdump
   set lastblock [$selt get serial]
   $selt delete
   puts $options(OUTPUT) "Largest contiguous block of atoms (indices beginning with 1): $firstblock-$lastblock
- Will use this for all analysis of the $SUBUNIT"
+Will use this for all analysis."
   set renamelist {}
   for {set i 0} { $i < [expr [llength $breaks]-1] } {incr i} {
    if { $i != $maxindex} {
@@ -3614,7 +3638,7 @@ $transMatricesdump
    set ID_SMALLt [restorenumbering $ID_SMALL 0]
    # findlargestblock finds the largest continuous set of residues with the given chain ID
    # all others that have the same ID are set to ID null
-   findlargestblock options $ID_SMALLt $CHAIN_ID_SrRNA "SSU" 0
+   findlargestblock options $ID_SMALLt $CHAIN_ID_SrRNA 0
    set tmpsel [atomselect $ID_SMALLt "chain \"$CHAIN_ID_SrRNA\" "]
    $tmpsel  writepdb "$options(SAVENAME)_SSU.pdb"
    $tmpsel delete
@@ -3640,7 +3664,7 @@ $transMatricesdump
     set ID_LARGEt [restorenumbering $ID_LARGE 0]
     # findlargestblock finds the largest continuous set of residues with the given chain ID
     # all others that have the same ID are set to ID null
-    findlargestblock options $ID_LARGEt $CHAIN_ID_LrRNA "LSU" 0
+    findlargestblock options $ID_LARGEt $CHAIN_ID_LrRNA 0
     set tmpsel [atomselect $ID_LARGEt "chain \"$CHAIN_ID_LrRNA\" "]
     $tmpsel  writepdb "$options(SAVENAME)_LSU.pdb"
     $tmpsel delete
