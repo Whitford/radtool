@@ -935,13 +935,13 @@ $RADREF
   if { ! [info exists options(ONLYSSU)] } {
    # first see if any non rRNA atoms have the same chain ID.
    # if they do, then set their chains to "null"
-   reassignchains options $ID_LARGE $CHAIN_ID_LrRNA "LSU" 1
+   findlargestblock options $ID_LARGE $CHAIN_ID_LrRNA "LSU" 1
    # for the largest block, check if atoms and resids are continuous 
    checkcontiguousatomsress $ID_LARGE $CHAIN_ID_LrRNA 
   }
  
   if { ! [info exists options(ONLYLSU)] } {
-   reassignchains options $ID_SMALL $CHAIN_ID_SrRNA "SSU" 1 
+   findlargestblock options $ID_SMALL $CHAIN_ID_SrRNA "SSU" 1 
    checkcontiguousatomsress $ID_SMALL $CHAIN_ID_SrRNA 
   }
  }
@@ -952,9 +952,11 @@ $RADREF
   set first [lindex [$SEL get serial] 0]
   set last [lindex [$SEL get serial] [expr [$SEL num]-1]]
   set NUM [$SEL num]
-  # since we are calling reassignchains, this should never be true
-  # but, it is possible that someone finds a way to break earlier routines
-  # so, we'll leave this check in place
+  # check that the selected block of atoms is contiguous.
+  # since call findlargestblock previously, this should never be true
+  # but, it is possible that someone will find a way to break earlier 
+  # routines (or we make a change that bypasses it) so, we'll leave this 
+  # check in place
   if {[$SEL num] != [expr $last-$first+1] && [$SEL num] > 0} {
    set lastname [lindex [$SEL get name] [expr [$SEL num]-1]]
    set firstname [lindex [$SEL get name] 0]
@@ -3421,7 +3423,7 @@ $transMatricesdump
   return [list $PHI $n_hat]
  }
  
- proc reassignchains {optin MOLID CHAIN_ID SUBUNIT WRITE} {
+ proc findlargestblock {optin MOLID CHAIN_ID SUBUNIT WRITE} {
   variable radenv
   upvar $optin options
   set LSEL [atomselect $MOLID "chain \"$CHAIN_ID\" and $radenv(NOTSTUFF)"]
@@ -3438,34 +3440,37 @@ $transMatricesdump
    incr atom
   }
   lappend breaks $atom
+  # breaks has the first and last atoms, always.  If there are any others, then there must be something non-consecutive
   if {[llength $breaks] > 2} {
    if {$WRITE} {
     puts $options(OUTPUT) "\nNote: Chain $CHAIN_ID was given for the $SUBUNIT.  However, the structure file contains atoms with chain $CHAIN_ID that are not consecutive. This typically is due to non-rRNA atoms (often ligands) being given a redundant chain ID. For subsequent analysis, only the largest contiguous block of atoms with ID $CHAIN_ID will be considered.\n" 
    }
-   # if not contiguous, find largest contiguous block, rename IDs for all others and give a message
-   set maxlength 0
-   set maxindex 0
-   for {set i 0} { $i < [expr [llength $breaks]-1] } {incr i} {
-    set length [expr [lindex $breaks [expr $i+1]] - [lindex $breaks $i ]]
-    if { $length > $maxlength } {
-     set maxlength $length
-     set maxindex $i
-    }
+  }
+  # if not contiguous, find largest contiguous block, rename IDs for all others and give a message
+  set maxlength 0
+  set maxindex 0
+  for {set i 0} { $i < [expr [llength $breaks]-1] } {incr i} {
+   set length [expr [lindex $breaks [expr $i+1]] - [lindex $breaks $i ]]
+   if { $length > $maxlength } {
+    set maxlength $length
+    set maxindex $i
    }
-   set selt [atomselect $MOLID "serial [lindex $seriallist [lindex $breaks $maxindex]]"]
-   set firstblock [$selt get serial]
-   $selt delete
-   set selt [atomselect $MOLID "serial [lindex $seriallist [lindex $breaks [expr $maxindex+1]]-1]"]
-   set lastblock [$selt get serial]
-   $selt delete
-   puts $options(OUTPUT) "Largest contiguous block of atoms (indices beginning with 1): $firstblock-$lastblock
+  }
+  set selt [atomselect $MOLID "serial [lindex $seriallist [lindex $breaks $maxindex]]"]
+  set firstblock [$selt get serial]
+  $selt delete
+  set selt [atomselect $MOLID "serial [lindex $seriallist [lindex $breaks [expr $maxindex+1]]-1]"]
+  set lastblock [$selt get serial]
+  $selt delete
+  puts $options(OUTPUT) "Largest contiguous block of atoms (indices beginning with 1): $firstblock-$lastblock
  Will use this for all analysis of the $SUBUNIT"
-   set renamelist {}
-   for {set i 0} { $i < [expr [llength $breaks]-1] } {incr i} {
-    if { $i != $maxindex} {
-     lappend renamelist [lrange $seriallist [lindex $breaks $i] [expr [lindex $breaks [expr $i +1]]-1]  ]
-    }
+  set renamelist {}
+  for {set i 0} { $i < [expr [llength $breaks]-1] } {incr i} {
+   if { $i != $maxindex} {
+    lappend renamelist [lrange $seriallist [lindex $breaks $i] [expr [lindex $breaks [expr $i +1]]-1]  ]
    }
+  }
+  if { [llength $renamelist] != 0 } {
    set renamelist [join $renamelist]
    set renamesel [atomselect $MOLID "serial $renamelist"] 
    $renamesel set chain "null"
@@ -3607,9 +3612,9 @@ $transMatricesdump
   if {[info exists options(SAVENAME)] && ! [info exists options(ONLYLSU)] } {
    # reset the numbering and reload the PDB
    set ID_SMALLt [restorenumbering $ID_SMALL 0]
-   # reassignchains finds the largest continuous set of residues with the given chain ID
+   # findlargestblock finds the largest continuous set of residues with the given chain ID
    # all others that have the same ID are set to ID null
-   reassignchains options $ID_SMALLt $CHAIN_ID_SrRNA "SSU" 0
+   findlargestblock options $ID_SMALLt $CHAIN_ID_SrRNA "SSU" 0
    set tmpsel [atomselect $ID_SMALLt "chain \"$CHAIN_ID_SrRNA\" "]
    $tmpsel  writepdb "$options(SAVENAME)_SSU.pdb"
    $tmpsel delete
@@ -3633,9 +3638,9 @@ $transMatricesdump
    if {[info exists options(SAVENAME)]} {
     # reset the numbering and reload the PDB
     set ID_LARGEt [restorenumbering $ID_LARGE 0]
-    # reassignchains finds the largest continuous set of residues with the given chain ID
+    # findlargestblock finds the largest continuous set of residues with the given chain ID
     # all others that have the same ID are set to ID null
-    reassignchains options $ID_LARGEt $CHAIN_ID_LrRNA "LSU" 0
+    findlargestblock options $ID_LARGEt $CHAIN_ID_LrRNA "LSU" 0
     set tmpsel [atomselect $ID_LARGEt "chain \"$CHAIN_ID_LrRNA\" "]
     $tmpsel  writepdb "$options(SAVENAME)_LSU.pdb"
     $tmpsel delete
