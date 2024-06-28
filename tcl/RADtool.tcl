@@ -2686,8 +2686,8 @@ When using the command-line interface, the following flags are supported:
                              -download automatically activated -bundle capabilities 
 
    Output Options:
-       -o <filen>        : angle output file (stdout, if not given)
-       -e <filen>        : error file (stderr, if not given)
+       -o <file>         : angle output file (stdout, if not given)
+       -e <file>         : error file (stderr, if not given)
        -ot <file>        : trajectory angle output file
        -align_out <file> : output file to store the alignments
        -cores_out <file> : output file to store the utilized core residues
