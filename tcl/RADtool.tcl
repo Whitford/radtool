@@ -71,7 +71,6 @@ namespace eval RADTOOL {
  
   variable pi 
   variable radenv
-  variable RTD 
 
   if { ! [info exists radenv(ROTTEST)] } {
    splashmessage "stdout"
@@ -134,7 +133,8 @@ namespace eval RADTOOL {
   variable radenv
   variable radversion
   variable RTD
- 
+  array unset RTD 
+
   # set reference structural model names
   array set options [setreferences options] 
  
@@ -149,42 +149,9 @@ namespace eval RADTOOL {
     return 
    }
   }
+
+  initialalignment options
   
-  # Before loading anything, let's do our alignments, if selected.
-  # Aligning earlier prevents alignment steps from getting bogged down by 
-  # lots of loaded sequences.
-  set RTD(nchangeSrRNA) "N/A"
-  set RTD(nchangeLrRNA) "N/A"
-  set RTD(nalignSrRNA) "N/A"
-  set RTD(nalignLrRNA) "N/A"
-  if {[info exists options(STAMP)]  || [info exists options(READALIGNMENT)] } {
-   # first, perform a single stamp alignment, we don't want to perturb 
-   # the input model, so we will simply move our references.
-   if {[catch {
-    set alignmaps [align_sequences options]
-    AddToRTD alignmaps 
-    } errorMessage] != 0} {
-    if { ![info exists options(HEADLAST)]  } {
-     set FHmess "\nPerhaps you should try to specify the head domain residues with -h_f and -h_l\n"
-    } else {
-     set FHmess ""
-    }
-    if {$options(ERROR) ne "stderr"} {
-     puts $options(ERROR) "\n\nALIGNMENT ERROR: $errorMessage\n$FHmess\nExiting without completing.\n"
-    }
-    closelogs options
-    error "\n\nALIGNMENT ERROR: $errorMessage\n$FHmess\nExiting without completing.\n"
-   }
-   set hf [lindex $alignmaps 2] 
-   set hl [lindex $alignmaps 3]
-   if { [llength $hf] != 0} {
-    set options(HEADFIRST) $hf
-   } 
-   if { [llength $hl] != 0} {
-    set options(HEADLAST) $hl
-   } 
-  }
- 
   # load reference configs and core atoms
   if {[catch {
    loadrefdata options
@@ -214,8 +181,9 @@ namespace eval RADTOOL {
     return 
    }
   }
+
   # if we did an alignment earlier, renumber at this time.
-  if { [info exists alignmaps] } {
+  if { [info exists RTD(alignmaps)] } {
    align_renum options
   }
  
@@ -941,6 +909,46 @@ $RADREF
   }
   return [array get options]
  }
+
+ proc initialalignment {optin} {
+ 
+  upvar $optin options
+  variable RTD
+  # Before loading anything, let's do our alignments, if selected.
+  # Aligning earlier prevents alignment steps from getting bogged down by 
+  # lots of loaded sequences.
+  set RTD(nchangeSrRNA) "N/A"
+  set RTD(nchangeLrRNA) "N/A"
+  set RTD(nalignSrRNA) "N/A"
+  set RTD(nalignLrRNA) "N/A"
+  if {[info exists options(STAMP)]  || [info exists options(READALIGNMENT)] } {
+   # first, perform a single stamp alignment, we don't want to perturb 
+   # the input model, so we will simply move our references.
+   if {[catch {
+    set alignmaps [align_sequences options]
+    AddToRTD alignmaps 
+    } errorMessage] != 0} {
+    if { ![info exists options(HEADLAST)]  } {
+     set FHmess "\nPerhaps you should try to specify the head domain residues with -h_f and -h_l\n"
+    } else {
+     set FHmess ""
+    }
+    if {$options(ERROR) ne "stderr"} {
+     puts $options(ERROR) "\n\nALIGNMENT ERROR: $errorMessage\n$FHmess\nExiting without completing.\n"
+    }
+    closelogs options
+    error "\n\nALIGNMENT ERROR: $errorMessage\n$FHmess\nExiting without completing.\n"
+   }
+   set hf [lindex $alignmaps 2] 
+   set hl [lindex $alignmaps 3]
+   if { [llength $hf] != 0} {
+    set options(HEADFIRST) $hf
+   } 
+   if { [llength $hl] != 0} {
+    set options(HEADLAST) $hl
+   } 
+  }
+ }
  
  proc checkcontiguous {optin} {
  
@@ -1497,7 +1505,7 @@ $RADREF
   # this either applies a sequence alignment, STAMP alignment, or reads in the alignments and renumbers residues.
   upvar $optin options
   variable RTD
-  foreach i { alignmaps ID_LARGE CHAIN_ID_LrRNA ID_SMALL CHAIN_ID_SrRNA  } {
+  foreach i { alignmaps ID_LARGE CHAIN_ID_LrRNA ID_SMALL CHAIN_ID_SrRNA } {
    set $i $RTD($i)
   }
   
