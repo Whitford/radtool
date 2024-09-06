@@ -209,7 +209,7 @@ namespace eval RTANIMATE {
   # copy the initial SSU model and reorient to the same reference
   set ID_SSUrRNA2 [::RADTOOL::restorenumbering $SSUID_begin 0]
   set op(OUTPUT) "stderr"
-  ::RADTOOL::reassignchains op $ID_SSUrRNA2 $smallchain_begin "SSU mod" 0
+  ::RADTOOL::findlargestblock op $ID_SSUrRNA2 $smallchain_begin "SSU mod" 0
   set sel [atomselect $ID_SSUrRNA2 "nucleic and chain \"$smallchain_begin\" and not resid $hf to $hl"]
   $sel move $M
   $sel delete
