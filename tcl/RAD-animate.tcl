@@ -35,7 +35,10 @@ namespace eval RTANIMATE {
   set seqrtt $vizseq 
   upvar $optin options
   # load in atom definitions for calculating angles
-  lassign [::RADTOOL::defineresidues] body0 body1 body2 head0 head1 head2 body_tilt0_0 body_tilt0_1 head_tilt0_0 head_tilt0_1 body_d head_d
+  foreach i { body0 body1 body2 head0 head1 head2 body_tilt0_0 body_tilt0_1 head_tilt0_0 head_tilt0_1 body_d head_d } { 
+   set $i $::RADTOOL::RTD($i)
+  }
+
  
   # the ID refers to the reference SSU rRNA structure.  We will separately move the full subunit (for body rotation)
   # and just the head
@@ -209,7 +212,7 @@ namespace eval RTANIMATE {
   # copy the initial SSU model and reorient to the same reference
   set ID_SSUrRNA2 [::RADTOOL::restorenumbering $SSUID_begin 0]
   set op(OUTPUT) "stderr"
-  ::RADTOOL::findlargestblock op $ID_SSUrRNA2 $smallchain_begin "SSU mod" 0
+  ::RADTOOL::findlargestblock op $ID_SSUrRNA2 $smallchain_begin 0
   set sel [atomselect $ID_SSUrRNA2 "nucleic and chain \"$smallchain_begin\" and not resid $hf to $hl"]
   $sel move $M
   $sel delete
@@ -223,7 +226,9 @@ namespace eval RTANIMATE {
   $selheadref delete
   
   # load in atom definitions for calculating angles
-  lassign [::RADTOOL::defineresidues] body0 body1 body2 head0 head1 head2 body_tilt0_0 body_tilt0_1 head_tilt0_0 head_tilt0_1 body_d head_d
+  foreach i { body0 body1 body2 head0 head1 head2 body_tilt0_0 body_tilt0_1 head_tilt0_0 head_tilt0_1 body_d head_d } {
+   set $i $::RADTOOL::RTD($i)
+  }
  
   # the ID refers to the reference SSU rRNA structure.  We will separately move the full subunit (for body rotation)
   # and just the head
