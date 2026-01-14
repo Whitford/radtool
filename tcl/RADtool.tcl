@@ -2785,6 +2785,7 @@ When using the command-line interface, the following flags are supported:
 
    Output Options:
        -o <file>         : angle output file (stdout, if not given)
+                             Note: this option applies when analyzing a single structure.
        -e <file>         : error file (stderr, if not given)
        -ot <file>        : trajectory angle output file
        -align_out <file> : output file to store the alignments
@@ -2831,7 +2832,9 @@ When using the command-line interface, the following flags are supported:
                              Interactively indicate which structure model is visualized 
 
    Trajectory-specific options:
-       -traj <list>      : list of files containing the trajectory (e.g. \"conf.pdb traj.xtc\") 
+       -traj <list>      : list of files containing the trajectory (e.g. \"conf.pdb traj.xtc\")
+                             Note: The first file (e.g. PDB) is not analyzed.  It is only
+                                   read in to obtain atom/residue names and numbers. 
        -t_first \[0\] \ \    : first frame to analyze
        -t_last	\[-1\] \ \    : last frame to analyze. -1 indicates all.
        -t_step \[1\]  \ \    : analyze every every Nth frame
