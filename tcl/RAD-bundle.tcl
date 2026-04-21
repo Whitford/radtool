@@ -134,11 +134,11 @@ namespace eval RTBUNDLE {
    set STR " using the -bundle flag"
   }
   if { [file exists $pdbdownload] > 0 } {
-   error "$pdbdownload is already present in the current directory. This is probably the desired structure, since PDB bundle names are quite specific. However, just to be safe, the script is going to exit. You can always analyze structures that you have already downloaded$STR."
+   error "$pdbdownload is already present in the current directory ($curdir). This is probably the desired structure, since PDB bundle names are quite specific. However, just to be safe, the script is going to exit. You can always analyze structures that you have already downloaded$STR."
   } elseif { [file exists [string trim $pdbdownload ".gz"]] > 0 } {
-   error "[string trim $pdbdownload ".gz"] is already present in the current directory. This is probably the desired structure, since PDB bundle names are quite specific. However, just to be safe, the script is going to exit. You can always analyze structures that you have already downloaded$STR."
+   error "[string trim $pdbdownload ".gz"] is already present in the current directory ($curdir). This is probably the desired structure, since PDB bundle names are quite specific. However, just to be safe, the script is going to exit. You can always analyze structures that you have already downloaded$STR."
   } elseif { [file exists $pdbdownload_cif] > 0 } {
-   error "$pdbdownload_cif is already present in the current directory. This is probably the desired structure, since CIF names are quite specific. However, just to be safe, the script is going to exit. You can always analyze structures that you have already downloaded using$STR."
+   error "$pdbdownload_cif is already present in the current directory ($curdir). This is probably the desired structure, since CIF names are quite specific. However, just to be safe, the script is going to exit. You can always analyze structures that you have already downloaded using$STR."
   } else {
    set choice "1"
    while { ![info exists pdblist] || $pdblist eq "" && $choice < 6 } {
@@ -156,9 +156,9 @@ namespace eval RTBUNDLE {
    if { [file exists $pdbdownload] > 0 && $pdblist eq "" } {
     error "$pdbdownload was downloaded, but it doesn't appear to contain readable structural information. This sometimes happens when a file is corrupted on the RCSB database. We suggest trying to manually download and see if the structure is readable."
   } elseif { [file exists [string trim $pdbdownload ".gz"]] > 0  && $pdblist eq "" } {
-    error "[string trim $pdbdownload ".gz"] is in the current directory, but it doesn't appear to contain readable structural information. This sometimes happens when a file is corrupted on the RCSB database. We suggest trying to manually download and see if the structure is readable."
+    error "[string trim $pdbdownload ".gz"] is in the current directory ($curdir), but it doesn't appear to contain readable structural information. This sometimes happens when a file is corrupted on the RCSB database. We suggest trying to manually download and see if the structure is readable."
   } elseif { [file exists $pdbdownload_cif] > 0  && $pdblist eq "" } {
-    error "$pdbdownload_cif is in the current directory, but it doesn't appear to contain readable structural information. This sometimes happens when a file is corrupted on the RCSB database. We suggest trying to manually download and see if the structure is readable."
+    error "$pdbdownload_cif is in the current directory ($curdir), but it doesn't appear to contain readable structural information. This sometimes happens when a file is corrupted on the RCSB database. We suggest trying to manually download and see if the structure is readable."
   } elseif { $pdblist eq "" } {
     error "
  
